@@ -13,6 +13,9 @@ using Microsoft.EntityFrameworkCore;
 using IdentityExample001.Core.Models;
 using Microsoft.AspNetCore.Identity;
 using System.Threading;
+using AspNet.Security.OpenIdConnect.Primitives;
+using OpenIddict.Core;
+using OpenIddict.Models;
 
 namespace IdentityExample001
 {
@@ -29,8 +32,31 @@ namespace IdentityExample001
         public void ConfigureServices(IServiceCollection services)
         {
             //Add Db Context
-            services.AddDbContext<AppDbContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+            services.AddDbContext<AppDbContext>(options => 
+            {
+                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
+                options.UseOpenIddict();
+            });
+
+            //map some of the default claims names to OpenId claim names
+            services.Configure<IdentityOptions>(opt=> 
+            {
+                opt.ClaimsIdentity.UserNameClaimType = OpenIdConnectConstants.Claims.Name;
+                opt.ClaimsIdentity.UserIdClaimType = OpenIdConnectConstants.Claims.Subject;
+                opt.ClaimsIdentity.RoleClaimType = OpenIdConnectConstants.Claims.Role;
+
+            });
+
+            services.AddOpenIddict<Guid>(opt=> 
+            {
+                opt.AddEntityFrameworkCoreStores<AppDbContext>();
+                opt.AddMvcBinders();
+                opt.EnableTokenEndpoint("api/token");
+                opt.AllowPasswordFlow();
+                opt.AllowClientCredentialsFlow();
+                opt.DisableHttpsRequirement();
+            });
+        
 
             services.AddIdentity<UserEntity, UserRoleEntity>()
                     .AddEntityFrameworkStores<AppDbContext>()
@@ -57,6 +83,9 @@ namespace IdentityExample001
             // Seed the database with the sample application.
             // Note: in a real world application, this step should be part of a setup script.
             InitializeAsync(app.ApplicationServices, CancellationToken.None).GetAwaiter().GetResult();
+
+            app.UseOAuthValidation();
+           
 
             app.UseMvc();
         }
@@ -90,6 +119,32 @@ namespace IdentityExample001
             {
                 var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                 await context.Database.EnsureCreatedAsync();
+
+                var manager = scope.ServiceProvider.GetRequiredService<OpenIddictApplicationManager<OpenIddictApplication>>();
+
+                if (await manager.FindByClientIdAsync("client", cancellationToken) == null)
+                {
+                    var descriptor = new OpenIddictApplicationDescriptor
+                    {
+                        ClientId = "client",
+                        ClientSecret = "388D45FA-B36B-4988-BA59-B187D329C207",
+                        DisplayName = "My client application"
+                    };
+
+                    await manager.CreateAsync(descriptor, cancellationToken);
+                }
+
+                if (await manager.FindByClientIdAsync("postman", cancellationToken) == null)
+                {
+                    var descriptor = new OpenIddictApplicationDescriptor
+                    {
+                        ClientId = "postman",
+                        DisplayName = "Postman",
+                        RedirectUris = { new Uri("https://www.getpostman.com/oauth2/callback") }
+                    };
+
+                    await manager.CreateAsync(descriptor, cancellationToken);
+                }
 
                 var roleManager = scope.ServiceProvider.GetService<RoleManager<UserRoleEntity>>();
                 var userManager = scope.ServiceProvider.GetService<UserManager<UserEntity>>();
