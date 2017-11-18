@@ -16,6 +16,7 @@ using System.Threading;
 using AspNet.Security.OpenIdConnect.Primitives;
 using OpenIddict.Core;
 using OpenIddict.Models;
+using AspNet.Security.OAuth.Validation;
 
 namespace IdentityExample001
 {
@@ -35,8 +36,19 @@ namespace IdentityExample001
             services.AddDbContext<AppDbContext>(options => 
             {
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
-                options.UseOpenIddict();
+                options.UseOpenIddict<Guid>();
             });
+
+            services.AddIdentity<UserEntity, UserRoleEntity>()
+                    .AddEntityFrameworkStores<AppDbContext>()
+                    .AddDefaultTokenProviders();
+
+            // Register the validation handler, that is used to decrypt the tokens.
+            services.AddAuthentication(options =>
+            {
+                options.DefaultScheme = OAuthValidationDefaults.AuthenticationScheme;
+            })
+            .AddOAuthValidation();
 
             //map some of the default claims names to OpenId claim names
             services.Configure<IdentityOptions>(opt=> 
@@ -47,22 +59,34 @@ namespace IdentityExample001
 
             });
 
-            services.AddOpenIddict<Guid>(opt=> 
+
+
+            // Register the OpenIddict services.
+            services.AddOpenIddict(options =>
             {
-                opt.AddEntityFrameworkCoreStores<AppDbContext>();
-                opt.AddMvcBinders();
-                opt.EnableTokenEndpoint("api/token");
-                opt.AllowPasswordFlow();
-                opt.AllowClientCredentialsFlow();
-                opt.DisableHttpsRequirement();
+                // Register the Entity Framework stores.
+                options.AddEntityFrameworkCoreStores<AppDbContext>();
+
+                // Register the ASP.NET Core MVC binder used by OpenIddict.
+                // Note: if you don't call this method, you won't be able to
+                // bind OpenIdConnectRequest or OpenIdConnectResponse parameters.
+                options.AddMvcBinders();
+
+                // Enable the token endpoint.
+                options.EnableTokenEndpoint("/connect/token");
+
+                // Enable the password flow.
+                options.AllowPasswordFlow();
+
+                // During development, you can disable the HTTPS requirement.
+                options.DisableHttpsRequirement();
+
+                // Note: to use JWT access tokens instead of the default
+                // encrypted format, the following lines are required:
+                //
+                // options.UseJsonWebTokens();
+                // options.AddEphemeralSigningKey();
             });
-        
-
-            services.AddIdentity<UserEntity, UserRoleEntity>()
-                    .AddEntityFrameworkStores<AppDbContext>()
-                    .AddDefaultTokenProviders();
-
-            services.AddScoped<RoleManager<UserRoleEntity>>();
 
 
 
@@ -73,7 +97,10 @@ namespace IdentityExample001
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             app.UseAuthentication();
+            
 
+            app.UseMvcWithDefaultRoute();
+            
             if (env.IsDevelopment())
             {
 
@@ -82,10 +109,9 @@ namespace IdentityExample001
 
             // Seed the database with the sample application.
             // Note: in a real world application, this step should be part of a setup script.
-            InitializeAsync(app.ApplicationServices, CancellationToken.None).GetAwaiter().GetResult();
+           InitializeAsync(app.ApplicationServices, CancellationToken.None).GetAwaiter().GetResult();
 
-            app.UseOAuthValidation();
-           
+            
 
             app.UseMvc();
         }
@@ -120,31 +146,31 @@ namespace IdentityExample001
                 var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                 await context.Database.EnsureCreatedAsync();
 
-                var manager = scope.ServiceProvider.GetRequiredService<OpenIddictApplicationManager<OpenIddictApplication>>();
+                //var manager = scope.ServiceProvider.GetRequiredService<OpenIddictApplicationManager<OpenIddictApplication<Guid>>>();
 
-                if (await manager.FindByClientIdAsync("client", cancellationToken) == null)
-                {
-                    var descriptor = new OpenIddictApplicationDescriptor
-                    {
-                        ClientId = "client",
-                        ClientSecret = "388D45FA-B36B-4988-BA59-B187D329C207",
-                        DisplayName = "My client application"
-                    };
+                //if (await manager.FindByClientIdAsync("client", cancellationToken) == null)
+                //{
+                //    var descriptor = new OpenIddictApplicationDescriptor
+                //    {
+                //        ClientId = "client",
+                //        ClientSecret = "388D45FA-B36B-4988-BA59-B187D329C207",
+                //        DisplayName = "My client application"
+                //    };
 
-                    await manager.CreateAsync(descriptor, cancellationToken);
-                }
+                //    await manager.CreateAsync(descriptor, cancellationToken);
+                //}
 
-                if (await manager.FindByClientIdAsync("postman", cancellationToken) == null)
-                {
-                    var descriptor = new OpenIddictApplicationDescriptor
-                    {
-                        ClientId = "postman",
-                        DisplayName = "Postman",
-                        RedirectUris = { new Uri("https://www.getpostman.com/oauth2/callback") }
-                    };
+                //if (await manager.FindByClientIdAsync("postman", cancellationToken) == null)
+                //{
+                //    var descriptor = new OpenIddictApplicationDescriptor
+                //    {
+                //        ClientId = "postman",
+                //        DisplayName = "Postman",
+                //        RedirectUris = { new Uri("https://www.getpostman.com/oauth2/callback") }
+                //    };
 
-                    await manager.CreateAsync(descriptor, cancellationToken);
-                }
+                //    await manager.CreateAsync(descriptor, cancellationToken);
+                //}
 
                 var roleManager = scope.ServiceProvider.GetService<RoleManager<UserRoleEntity>>();
                 var userManager = scope.ServiceProvider.GetService<UserManager<UserEntity>>();
