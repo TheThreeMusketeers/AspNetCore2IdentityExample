@@ -22,5 +22,7 @@ namespace IdentityExample001.Persistence
             base.OnModelCreating(modelBuilder);
             //modelBuilder.UseOpenIddict<Guid>();
         }
-    }
-}
+
+        public DbSet<ProductEntity> Products { get; set; }
+    }//cs
+}//ns

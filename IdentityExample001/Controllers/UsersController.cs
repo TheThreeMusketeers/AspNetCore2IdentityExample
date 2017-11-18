@@ -1,12 +1,15 @@
-﻿using IdentityExample001.Core.Models;
+﻿using AspNet.Security.OAuth.Validation;
+using IdentityExample001.Core.Models;
 using IdentityExample001.Core.ViewModels;
 using IdentityExample001.Persistence;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace IdentityExample001.Controllers
@@ -22,10 +25,22 @@ namespace IdentityExample001.Controllers
             _dbContext = dbContext;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetUsers()
+        [HttpGet(Name = nameof(GetUsersAsync))]
+        public async Task<IActionResult> GetUsersAsync()
         {
             return Ok(await _userManager.Users.ToArrayAsync());
+        }
+
+        [Authorize(AuthenticationSchemes = OAuthValidationDefaults.AuthenticationScheme)]
+        [HttpGet("me", Name = nameof(GetMeAsync))]
+        public async Task<IActionResult> GetMeAsync(CancellationToken ct)
+        {
+            if (User == null) return BadRequest();
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null) return NotFound();
+
+            return Ok(user);
         }
 
         [HttpPost]
