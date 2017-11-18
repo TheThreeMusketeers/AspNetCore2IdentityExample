@@ -116,28 +116,7 @@ namespace IdentityExample001
             app.UseMvc();
         }
 
-        private static async Task AddTestusers(RoleManager<UserRoleEntity> roleManager, UserManager<UserEntity> userManager)
-        {
-            //Add test role
-            await roleManager.CreateAsync(new UserRoleEntity("Admin"));
-
-            //Add test user
-            var user = new UserEntity
-            {
-                Email = "ersinsivaz@hotmail.com",
-                UserName = "ersinsivaz@hotmail.com",
-                FirstName = "ersin",
-                LastName = "sivaz",
-                CreatedAt = DateTimeOffset.UtcNow,
-                SecurityStamp = "UserSecurityStamp",
-                Id = Guid.NewGuid()
-            };
-
-            await userManager.CreateAsync(user, "ersin123!!AA");
-            await userManager.AddToRoleAsync(user, "Admin");
-            await userManager.UpdateAsync(user);
-        }
-
+       
         private async Task InitializeAsync(IServiceProvider services, CancellationToken cancellationToken)
         {
             // Create a new service scope to ensure the database context is correctly disposed when this methods returns.
@@ -146,38 +125,59 @@ namespace IdentityExample001
                 var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                 await context.Database.EnsureCreatedAsync();
 
-                //var manager = scope.ServiceProvider.GetRequiredService<OpenIddictApplicationManager<OpenIddictApplication<Guid>>>();
-
-                //if (await manager.FindByClientIdAsync("client", cancellationToken) == null)
-                //{
-                //    var descriptor = new OpenIddictApplicationDescriptor
-                //    {
-                //        ClientId = "client",
-                //        ClientSecret = "388D45FA-B36B-4988-BA59-B187D329C207",
-                //        DisplayName = "My client application"
-                //    };
-
-                //    await manager.CreateAsync(descriptor, cancellationToken);
-                //}
-
-                //if (await manager.FindByClientIdAsync("postman", cancellationToken) == null)
-                //{
-                //    var descriptor = new OpenIddictApplicationDescriptor
-                //    {
-                //        ClientId = "postman",
-                //        DisplayName = "Postman",
-                //        RedirectUris = { new Uri("https://www.getpostman.com/oauth2/callback") }
-                //    };
-
-                //    await manager.CreateAsync(descriptor, cancellationToken);
-                //}
-
                 var roleManager = scope.ServiceProvider.GetService<RoleManager<UserRoleEntity>>();
                 var userManager = scope.ServiceProvider.GetService<UserManager<UserEntity>>();
 
-                AddTestusers(roleManager, userManager).Wait();
+                var dbContext = scope.ServiceProvider.GetService<AppDbContext>();
+
+                AddTestusers(roleManager, userManager,dbContext).Wait();
                 
             }
         }
-    }
-}
+
+        private static async Task AddTestusers(RoleManager<UserRoleEntity> roleManager, UserManager<UserEntity> userManager, AppDbContext dbContext)
+        {
+            Guid orgId = Guid.NewGuid();
+
+            var user = new UserEntity
+            {
+                Email = "ersinsivaz@hotmail.com",
+                UserName = "ersinsivaz@hotmail.com",
+                FirstName = "ersin",
+                LastName = "sivaz",
+                CreatedAt = DateTimeOffset.UtcNow,
+                SecurityStamp = "UserSecurityStamp",
+                Id = Guid.NewGuid(),
+                OrganizationId = orgId
+            };
+
+
+            OrganizationEntity organizationEntity = new OrganizationEntity
+            {
+                Id = orgId,
+                Name = "Default Organization",
+                Description = "Default organization created seed data",
+                CreatedAt = DateTimeOffset.UtcNow,
+                CreatedBy = user.Email
+            };
+
+            var org = await dbContext.Organizations.SingleOrDefaultAsync(o => o.Name == organizationEntity.Name);
+
+            if(org==null)
+            {
+                await dbContext.Organizations.AddAsync(organizationEntity);
+
+                await dbContext.SaveChangesAsync();
+            }
+
+           
+            //Add test role
+            await roleManager.CreateAsync(new UserRoleEntity("Admin"));
+            await userManager.CreateAsync(user, "ersin123!!AA");
+            await userManager.AddToRoleAsync(user, "Admin");
+            await userManager.UpdateAsync(user);
+
+        }
+
+    }//cs
+}//ns

@@ -46,6 +46,8 @@ namespace IdentityExample001.Controllers
         [HttpPost]
         public async Task<IActionResult> RegisterUser([FromBody] RegisterUserViewModel registerUserViewModel)
         {
+            if (!ModelState.IsValid) return BadRequest("Giriş bilgileri yetersiz.!");
+
             var entity = new UserEntity
             {
                 Email = registerUserViewModel.Email,
@@ -60,6 +62,22 @@ namespace IdentityExample001.Controllers
             {
                 return BadRequest(ModelState);
             }
+
+            OrganizationEntity orgEntity = new OrganizationEntity
+            {
+                Id = Guid.NewGuid(),
+                Name = registerUserViewModel.Email,
+                Description = "Otomatik olarak organizasyon oluşturuldu",
+                CreatedAt = DateTimeOffset.UtcNow,
+                CreatedBy = registerUserViewModel.Email
+            };
+
+            await _dbContext.Organizations.AddAsync(orgEntity);
+
+            var orgResult =  await _dbContext.SaveChangesAsync();
+
+            if (orgResult <= 0)
+                return BadRequest("Organizasyon oluşturulamadı");
 
             return Ok(entity);
         }

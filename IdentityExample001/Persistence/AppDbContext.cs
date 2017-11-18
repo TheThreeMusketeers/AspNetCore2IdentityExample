@@ -24,5 +24,6 @@ namespace IdentityExample001.Persistence
         }
 
         public DbSet<ProductEntity> Products { get; set; }
+        public DbSet<OrganizationEntity> Organizations { get; set; }
     }//cs
 }//ns

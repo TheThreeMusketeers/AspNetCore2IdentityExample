@@ -35,13 +35,16 @@ namespace IdentityExample001.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
+            var user = await _userManager.GetUserAsync(User);
+
             ProductEntity entity = new ProductEntity
             {
                 Id = Guid.NewGuid(),
                 Name = createProductViewModel.Name,
                 Description = createProductViewModel.Description,
-                CreatedBy = _userManager.GetUserName(User),
-                CreatedAt = DateTimeOffset.UtcNow
+                CreatedBy = user.UserName,
+                CreatedAt = DateTimeOffset.UtcNow,
+                OrganizationId = user.OrganizationId
             };
 
             await _dbContext.Products.AddAsync(entity);
@@ -54,6 +57,6 @@ namespace IdentityExample001.Controllers
             }
            
             return Ok(entity);
-        }//CreateVehicle
+        }//CreateProduct
     }//cs
 }//ns

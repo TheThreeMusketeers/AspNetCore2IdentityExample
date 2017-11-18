@@ -7,16 +7,15 @@ using System.Threading.Tasks;
 
 namespace IdentityExample001.Core.Models
 {
-    [Table("Products")]
-    public class ProductEntity : AuditEntity
+    [Table("Organizations")]
+    public class OrganizationEntity : AuditEntity
     {
         [Key]
         public Guid Id { get; set; }
+
         [Required]
         public string Name { get; set; }
-        public string Description { get; set; }
 
-        public Guid OrganizationId { get; set; }
-        public OrganizationEntity Organization { get; set; }
-    }
-}
+        public string Description { get; set; }
+    }//cs
+}//ns

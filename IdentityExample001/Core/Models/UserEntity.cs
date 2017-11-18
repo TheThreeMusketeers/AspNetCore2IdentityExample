@@ -11,5 +11,8 @@ namespace IdentityExample001.Core.Models
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public DateTimeOffset CreatedAt { get; set; }
+
+        public Guid OrganizationId { get; set; }
+        public OrganizationEntity Organization { get; set; }
     }
 }
