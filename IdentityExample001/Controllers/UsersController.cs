@@ -40,6 +40,10 @@ namespace IdentityExample001.Controllers
 
             if (user == null) return NotFound();
 
+            var organization = await _dbContext.Organizations.SingleOrDefaultAsync(o => o.Id == user.OrganizationId);
+
+            user.Organization = organization;
+
             return Ok(user);
         }
 
