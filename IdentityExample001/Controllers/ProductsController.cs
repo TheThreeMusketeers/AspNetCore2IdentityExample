@@ -18,11 +18,15 @@ namespace IdentityExample001.Controllers
 
         private readonly AppDbContext _dbContext;
         private readonly UserManager<UserEntity> _userManager;
+        private readonly IAuthorizationService _authorizationService;
 
-        public ProductsController(AppDbContext dbContext, UserManager<UserEntity> userManager)
+        public ProductsController(AppDbContext dbContext, 
+            UserManager<UserEntity> userManager,
+            IAuthorizationService authorizationService)
         {
             _dbContext = dbContext;
             _userManager = userManager;
+            _authorizationService = authorizationService;
         }
 
 
@@ -31,6 +35,15 @@ namespace IdentityExample001.Controllers
         public async Task<IActionResult> CreateProduct([FromBody] CreateProductViewModel createProductViewModel)
         {
             if (User == null) return BadRequest();
+
+            if(User.Identity.IsAuthenticated)
+            {
+                var canCreateProductPolicy = await _authorizationService.AuthorizeAsync(User, Common.Policies.Policies.CreateProductPolicy);
+                if(!canCreateProductPolicy.Succeeded)
+                {
+                    return BadRequest("Kullanıcı yetkili değil");
+                }
+            }
             
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);

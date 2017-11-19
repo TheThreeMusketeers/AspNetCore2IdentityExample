@@ -88,6 +88,11 @@ namespace IdentityExample001
                 // options.AddEphemeralSigningKey();
             });
 
+            services.AddAuthorization(opt=> 
+            {
+                opt.AddPolicy(Common.Policies.Policies.CreateProductPolicy,
+                    p => p.RequireAuthenticatedUser().RequireRole("Admin"));
+            });
 
 
             services.AddMvc();
@@ -151,6 +156,18 @@ namespace IdentityExample001
                 OrganizationId = orgId
             };
 
+            var user2 = new UserEntity
+            {
+                Email = "ersinsivaz@gmail.com",
+                UserName = "ersinsivaz@gmail.com",
+                FirstName = "ersin",
+                LastName = "sivaz",
+                CreatedAt = DateTimeOffset.UtcNow,
+                SecurityStamp = "UserSecurityStamp",
+                Id = Guid.NewGuid(),
+                OrganizationId = orgId
+            };
+
 
             OrganizationEntity organizationEntity = new OrganizationEntity
             {
@@ -169,13 +186,25 @@ namespace IdentityExample001
 
                 await dbContext.SaveChangesAsync();
             }
+            else
+            {
+                user.OrganizationId = org.Id;
+                user2.OrganizationId = org.Id;
+            }
 
            
             //Add test role
             await roleManager.CreateAsync(new UserRoleEntity("Admin"));
+            await roleManager.CreateAsync(new UserRoleEntity("User"));
+
+
             await userManager.CreateAsync(user, "ersin123!!AA");
             await userManager.AddToRoleAsync(user, "Admin");
             await userManager.UpdateAsync(user);
+
+            await userManager.CreateAsync(user2, "ersin123!!AA");
+            await userManager.AddToRoleAsync(user2, "User");
+            await userManager.UpdateAsync(user2);
 
         }
 
