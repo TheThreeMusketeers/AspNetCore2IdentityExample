@@ -17,6 +17,7 @@ using AspNet.Security.OpenIdConnect.Primitives;
 using OpenIddict.Core;
 using OpenIddict.Models;
 using AspNet.Security.OAuth.Validation;
+using IdentityExample001.Services;
 
 namespace IdentityExample001
 {
@@ -94,6 +95,8 @@ namespace IdentityExample001
                     p => p.RequireAuthenticatedUser().RequireRole("Admin"));
             });
 
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<IProductService, ProductService>();
 
             services.AddMvc();
         }

@@ -2,6 +2,7 @@
 using IdentityExample001.Core.Models;
 using IdentityExample001.Core.ViewModels;
 using IdentityExample001.Persistence;
+using IdentityExample001.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -16,18 +17,23 @@ namespace IdentityExample001.Controllers
     [Route("api/[controller]")]
     public class ProductsController : Controller
     {
-
         private readonly AppDbContext _dbContext;
         private readonly UserManager<UserEntity> _userManager;
         private readonly IAuthorizationService _authorizationService;
+        private readonly IProductService _productService;
+        private readonly IUnitOfWork unitOfWork;
 
         public ProductsController(AppDbContext dbContext, 
             UserManager<UserEntity> userManager,
-            IAuthorizationService authorizationService)
+            IAuthorizationService authorizationService,
+            IProductService productService,
+            IUnitOfWork unitOfWork)
         {
             _dbContext = dbContext;
             _userManager = userManager;
             _authorizationService = authorizationService;
+            _productService = productService;
+            this.unitOfWork = unitOfWork;
         }
 
 
@@ -51,21 +57,11 @@ namespace IdentityExample001.Controllers
 
             var user = await _userManager.GetUserAsync(User);
 
-            ProductEntity entity = new ProductEntity
-            {
-                Id = Guid.NewGuid(),
-                Name = createProductViewModel.Name,
-                Description = createProductViewModel.Description,
-                CreatedBy = user.UserName,
-                CreatedAt = DateTimeOffset.UtcNow,
-                OrganizationId = user.OrganizationId
-            };
+            var entity = await _productService.Add(createProductViewModel, user);
 
-            await _dbContext.Products.AddAsync(entity);
+            int result = await unitOfWork.CompleteAsync();
 
-            var result = await _dbContext.SaveChangesAsync();
-
-            if(result<=0)
+            if (result<=0)
             {
                 return BadRequest(ModelState);
             }
