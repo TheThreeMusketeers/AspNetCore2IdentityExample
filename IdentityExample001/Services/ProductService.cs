@@ -45,11 +45,17 @@ namespace IdentityExample001.Services
             return true;
         }
 
-        public async Task<IEnumerable<ProductEntity>> GetProductsAsync(PagingOptions pagingOptions,UserEntity user, CancellationToken ct)
+        public async Task<PagedResults<ProductEntity>> GetProductsAsync(PagingOptions pagingOptions,UserEntity user, CancellationToken ct)
         {
             IEnumerable<ProductEntity> products = await _dbContext.Products.Where(p => p.OrganizationId == user.OrganizationId).ToListAsync();
+            var pagedProducts = products.Skip(pagingOptions.Offset.Value).Take(pagingOptions.Limit.Value);
 
-            return products;
+
+            return new PagedResults<ProductEntity>
+            {
+                Items = pagedProducts,
+                TotalSize =products.Count()
+            };
         }
 
         public async Task<ProductEntity> UpdateAsync(UpdateProductViewModel model, UserEntity user)

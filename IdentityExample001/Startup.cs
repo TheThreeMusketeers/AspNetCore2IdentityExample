@@ -18,6 +18,7 @@ using OpenIddict.Core;
 using OpenIddict.Models;
 using AspNet.Security.OAuth.Validation;
 using IdentityExample001.Services;
+using IdentityExample001.Core.Resources;
 
 namespace IdentityExample001
 {
@@ -94,6 +95,8 @@ namespace IdentityExample001
                 opt.AddPolicy(Common.Policies.Policies.CreateProductPolicy,
                     p => p.RequireAuthenticatedUser().RequireRole("Admin"));
             });
+
+            services.Configure<PagingOptions>(Configuration.GetSection("DefaultPagingOptions"));
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IProductService, ProductService>();

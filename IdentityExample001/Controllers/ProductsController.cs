@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,18 +25,21 @@ namespace IdentityExample001.Controllers
         private readonly IAuthorizationService _authorizationService;
         private readonly IProductService _productService;
         private readonly IUnitOfWork unitOfWork;
+        private readonly PagingOptions defaultPagingOptions;
 
         public ProductsController(AppDbContext dbContext, 
             UserManager<UserEntity> userManager,
             IAuthorizationService authorizationService,
             IProductService productService,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,
+            IOptions<PagingOptions> defaultPagingOptions)
         {
             _dbContext = dbContext;
             _userManager = userManager;
             _authorizationService = authorizationService;
             _productService = productService;
             this.unitOfWork = unitOfWork;
+            this.defaultPagingOptions = defaultPagingOptions.Value;
         }
 
 
@@ -151,11 +155,17 @@ namespace IdentityExample001.Controllers
 
             var user = await _userManager.GetUserAsync(User);
 
-            IEnumerable<ProductEntity> products = await _productService.GetProductsAsync(pagingOptions,user,ct);
+            pagingOptions.Offset = pagingOptions.Offset ?? defaultPagingOptions.Offset;
+            pagingOptions.Limit = pagingOptions.Limit ?? defaultPagingOptions.Limit;
 
-            var collection = new Collection<ProductEntity>
+            PagedResults<ProductEntity> products = await _productService.GetProductsAsync(pagingOptions,user,ct);
+
+            var collection = new PagedCollection<ProductEntity>
             {
-                Value = products.ToArray()
+                Value = products.Items.ToArray(),
+                Size = products.TotalSize,
+                Offset = pagingOptions.Offset.Value,
+                Limit = pagingOptions.Limit.Value
             };
 
             return Ok(collection);

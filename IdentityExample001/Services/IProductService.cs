@@ -14,6 +14,6 @@ namespace IdentityExample001.Services
         Task<ProductEntity> AddAsync(CreateProductViewModel createProductViewModel,UserEntity user);
         Task<ProductEntity> UpdateAsync(UpdateProductViewModel model, UserEntity user);
         Task<Boolean> DeleteAsync(Guid id);
-        Task<IEnumerable<ProductEntity>> GetProductsAsync(PagingOptions pagingOptions,UserEntity user,CancellationToken ct);
+        Task<PagedResults<ProductEntity>> GetProductsAsync(PagingOptions pagingOptions,UserEntity user,CancellationToken ct);
     }//cs
 }//ns
