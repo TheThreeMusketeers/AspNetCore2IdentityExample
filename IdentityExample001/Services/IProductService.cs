@@ -9,6 +9,9 @@ namespace IdentityExample001.Services
 {
     public interface IProductService
     {
-        Task<ProductEntity> Add(CreateProductViewModel createProductViewModel,UserEntity user);
+        Task<ProductEntity> AddAsync(CreateProductViewModel createProductViewModel,UserEntity user);
+        Task<ProductEntity> UpdateAsync(UpdateProductViewModel model, UserEntity user);
+        Task<Boolean> DeleteAsync(Guid id);
+        Task<IEnumerable<ProductEntity>> GetProductsAsync(UserEntity user);
     }//cs
 }//ns

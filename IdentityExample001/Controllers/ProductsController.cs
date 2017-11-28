@@ -57,7 +57,7 @@ namespace IdentityExample001.Controllers
 
             var user = await _userManager.GetUserAsync(User);
 
-            var entity = await _productService.Add(createProductViewModel, user);
+            var entity = await _productService.AddAsync(createProductViewModel, user);
 
             int result = await unitOfWork.CompleteAsync();
 
@@ -89,16 +89,12 @@ namespace IdentityExample001.Controllers
 
             var user = await _userManager.GetUserAsync(User);
 
-            ProductEntity entity = await _dbContext.Products.SingleOrDefaultAsync(p => p.Id == updateProductViewModel.Id);
+            ProductEntity entity = await _productService.UpdateAsync(updateProductViewModel, user);
 
             if (entity == null) return BadRequest("Ürün bulunamadı");
 
-            entity.Description = updateProductViewModel.Description;
-            entity.Name = updateProductViewModel.Name;
-            entity.LastUpdatedBy = user.UserName;
-            entity.LastUpdatedAt = DateTimeOffset.UtcNow;
 
-            var result = await _dbContext.SaveChangesAsync();
+            var result = await unitOfWork.CompleteAsync();
 
             if (result <= 0)
             {
@@ -126,18 +122,14 @@ namespace IdentityExample001.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            //Guid entityId = new Guid(id);
-            Guid entityId = id;
-
+          
             var user = await _userManager.GetUserAsync(User);
 
-            ProductEntity entity = await _dbContext.Products.SingleOrDefaultAsync(p => p.Id == entityId);
+            bool isDeleted = await _productService.DeleteAsync(id);
 
-            if (entity == null) return BadRequest("Ürün bulunamadı");
+            if (!isDeleted) return BadRequest("Ürün bulunamadı");
 
-            _dbContext.Products.Remove(entity);
-
-            var result = await _dbContext.SaveChangesAsync();
+            var result = await unitOfWork.CompleteAsync();
 
             if (result <= 0)
             {
@@ -150,10 +142,17 @@ namespace IdentityExample001.Controllers
 
 
         [Authorize(AuthenticationSchemes = OAuthValidationDefaults.AuthenticationScheme)]
-        [HttpGet(Name = nameof(CreateProduct))]
+        [HttpGet(Name = nameof(GetProducts))]
         public async Task<IActionResult> GetProducts()
         {
-            return Ok(await _dbContext.Products.Include(p=>p.Organization).ToArrayAsync());
+            if (User == null) return BadRequest();
+
+            var user = await _userManager.GetUserAsync(User);
+
+            IEnumerable<ProductEntity> products = await _productService.GetProductsAsync(user);
+
+            return Ok(products);
+           
         }//GetProducts
 
     }//cs
