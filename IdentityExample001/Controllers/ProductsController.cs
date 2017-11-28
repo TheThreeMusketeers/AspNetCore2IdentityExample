@@ -1,5 +1,6 @@
 ﻿using AspNet.Security.OAuth.Validation;
 using IdentityExample001.Core.Models;
+using IdentityExample001.Core.Resources;
 using IdentityExample001.Core.ViewModels;
 using IdentityExample001.Persistence;
 using IdentityExample001.Services;
@@ -10,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace IdentityExample001.Controllers
@@ -143,15 +145,20 @@ namespace IdentityExample001.Controllers
 
         [Authorize(AuthenticationSchemes = OAuthValidationDefaults.AuthenticationScheme)]
         [HttpGet(Name = nameof(GetProducts))]
-        public async Task<IActionResult> GetProducts()
+        public async Task<IActionResult> GetProducts([FromQuery]PagingOptions pagingOptions,CancellationToken ct)
         {
             if (User == null) return BadRequest();
 
             var user = await _userManager.GetUserAsync(User);
 
-            IEnumerable<ProductEntity> products = await _productService.GetProductsAsync(user);
+            IEnumerable<ProductEntity> products = await _productService.GetProductsAsync(pagingOptions,user,ct);
 
-            return Ok(products);
+            var collection = new Collection<ProductEntity>
+            {
+                Value = products.ToArray()
+            };
+
+            return Ok(collection);
            
         }//GetProducts
 

@@ -6,6 +6,8 @@ using IdentityExample001.Core.Models;
 using IdentityExample001.Core.ViewModels;
 using IdentityExample001.Persistence;
 using Microsoft.EntityFrameworkCore;
+using IdentityExample001.Core.Resources;
+using System.Threading;
 
 namespace IdentityExample001.Services
 {
@@ -43,7 +45,7 @@ namespace IdentityExample001.Services
             return true;
         }
 
-        public async Task<IEnumerable<ProductEntity>> GetProductsAsync(UserEntity user)
+        public async Task<IEnumerable<ProductEntity>> GetProductsAsync(PagingOptions pagingOptions,UserEntity user, CancellationToken ct)
         {
             IEnumerable<ProductEntity> products = await _dbContext.Products.Where(p => p.OrganizationId == user.OrganizationId).ToListAsync();
 
