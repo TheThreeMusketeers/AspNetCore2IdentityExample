@@ -21,7 +21,7 @@ namespace IdentityExample001.Infrastructure
             CreateMap<AuditEntity, Audit>();
             CreateMap<OrganizationEntity, Organization>();
             CreateMap<ProductEntity, Product>();
-
+            CreateMap(typeof(PagedResults<>), typeof(PagedResults<>));
         }
     }//cs
 }//ns

@@ -1,4 +1,5 @@
 ﻿using AspNet.Security.OAuth.Validation;
+using AutoMapper;
 using IdentityExample001.Core.Models;
 using IdentityExample001.Core.Resources;
 using IdentityExample001.Core.ViewModels;
@@ -159,9 +160,11 @@ namespace IdentityExample001.Controllers
             pagingOptions.Offset = pagingOptions.Offset ?? defaultPagingOptions.Offset;
             pagingOptions.Limit = pagingOptions.Limit ?? defaultPagingOptions.Limit;
 
-            PagedResults<ProductEntity> products = await _productService.GetProductsAsync(pagingOptions,user,ct);
+            PagedResults<ProductEntity> productEntities = await _productService.GetProductsAsync(pagingOptions,user,ct);
 
-            var collection = new PagedCollection<ProductEntity>
+            PagedResults<Product> products = Mapper.Map<PagedResults<ProductEntity>, PagedResults<Product>>(productEntities);
+
+            var collection = new PagedCollection<Product>
             {
                 Value = products.Items.ToArray(),
                 Size = products.TotalSize,

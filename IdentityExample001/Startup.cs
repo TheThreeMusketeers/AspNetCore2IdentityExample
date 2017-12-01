@@ -19,6 +19,7 @@ using OpenIddict.Models;
 using AspNet.Security.OAuth.Validation;
 using IdentityExample001.Services;
 using IdentityExample001.Core.Resources;
+using AutoMapper;
 
 namespace IdentityExample001
 {
@@ -40,6 +41,8 @@ namespace IdentityExample001
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
                 options.UseOpenIddict<Guid>();
             });
+
+            services.AddAutoMapper();
 
             services.AddIdentity<UserEntity, UserRoleEntity>()
                     .AddEntityFrameworkStores<AppDbContext>()
