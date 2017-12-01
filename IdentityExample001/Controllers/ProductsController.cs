@@ -107,6 +107,7 @@ namespace IdentityExample001.Controllers
                 return BadRequest(ModelState);
             }
 
+
             return Ok(entity);
         }//UpdateProduct
 
