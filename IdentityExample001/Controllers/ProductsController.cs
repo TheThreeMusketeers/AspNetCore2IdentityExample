@@ -151,7 +151,10 @@ namespace IdentityExample001.Controllers
 
         [Authorize(AuthenticationSchemes = OAuthValidationDefaults.AuthenticationScheme)]
         [HttpGet(Name = nameof(GetProducts))]
-        public async Task<IActionResult> GetProducts([FromQuery]PagingOptions pagingOptions,CancellationToken ct)
+        public async Task<IActionResult> GetProducts(
+            [FromQuery] PagingOptions pagingOptions,
+            [FromQuery] SortOptions<Product,ProductEntity> sortOptions,
+            CancellationToken ct)
         {
             if (User == null) return BadRequest();
 
@@ -160,7 +163,7 @@ namespace IdentityExample001.Controllers
             pagingOptions.Offset = pagingOptions.Offset ?? defaultPagingOptions.Offset;
             pagingOptions.Limit = pagingOptions.Limit ?? defaultPagingOptions.Limit;
 
-            PagedResults<ProductEntity> productEntities = await _productService.GetProductsAsync(pagingOptions,user,ct);
+            PagedResults<ProductEntity> productEntities = await _productService.GetProductsAsync(pagingOptions,sortOptions,user,ct);
 
             PagedResults<Product> products = Mapper.Map<PagedResults<ProductEntity>, PagedResults<Product>>(productEntities);
 

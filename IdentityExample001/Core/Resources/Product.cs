@@ -1,4 +1,5 @@
-﻿using System;
+﻿using IdentityExample001.Infrastructure;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -11,6 +12,7 @@ namespace IdentityExample001.Core.Resources
         [Key]
         public Guid Id { get; set; }
         [Required]
+        [Sortable(Default = true)]
         public string Name { get; set; }
         public string Description { get; set; }
 

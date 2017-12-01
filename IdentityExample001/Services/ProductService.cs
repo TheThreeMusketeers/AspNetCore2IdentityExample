@@ -45,16 +45,24 @@ namespace IdentityExample001.Services
             return true;
         }
 
-        public async Task<PagedResults<ProductEntity>> GetProductsAsync(PagingOptions pagingOptions,UserEntity user, CancellationToken ct)
+        public async Task<PagedResults<ProductEntity>> GetProductsAsync(
+            PagingOptions pagingOptions,
+            SortOptions<Product,ProductEntity> sortOptions,
+            UserEntity user, 
+            CancellationToken ct)
         {
-            IEnumerable<ProductEntity> products = await _dbContext.Products.Where(p => p.OrganizationId == user.OrganizationId).ToListAsync();
-            var pagedProducts = products.Skip(pagingOptions.Offset.Value).Take(pagingOptions.Limit.Value);
+            IQueryable<ProductEntity> query = _dbContext.Products.Where(p=>p.OrganizationId == user.OrganizationId);
+
+            query = sortOptions.Apply(query);
+
+           // IEnumerable<ProductEntity> products = _dbContext.Products.Where(p => p.OrganizationId == user.OrganizationId).ToListAsync();
+            var pagedProducts = await query.Skip(pagingOptions.Offset.Value).Take(pagingOptions.Limit.Value).ToListAsync();
 
 
             return new PagedResults<ProductEntity>
             {
                 Items = pagedProducts,
-                TotalSize =products.Count()
+                TotalSize =query.Count()
             };
         }
 
