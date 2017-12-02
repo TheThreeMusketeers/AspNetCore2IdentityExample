@@ -20,6 +20,7 @@ using AspNet.Security.OAuth.Validation;
 using IdentityExample001.Services;
 using IdentityExample001.Core.Resources;
 using AutoMapper;
+using IdentityExample001.Filters;
 
 namespace IdentityExample001
 {
@@ -104,7 +105,10 @@ namespace IdentityExample001
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IProductService, ProductService>();
 
-            services.AddMvc();
+            services.AddMvc(opt => 
+            {
+                opt.Filters.Add(typeof(JsonExceptionFilter));
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

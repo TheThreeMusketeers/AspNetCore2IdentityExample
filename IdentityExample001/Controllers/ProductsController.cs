@@ -58,9 +58,9 @@ namespace IdentityExample001.Controllers
                     return BadRequest("Kullanıcı yetkili değil");
                 }
             }
-            
+
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                return BadRequest(new ApiError(ModelState));
 
             var user = await _userManager.GetUserAsync(User);
 
@@ -156,6 +156,9 @@ namespace IdentityExample001.Controllers
             [FromQuery] SortOptions<Product,ProductEntity> sortOptions,
             CancellationToken ct)
         {
+
+            throw new NotImplementedException();
+
             if (User == null) return BadRequest();
 
             var user = await _userManager.GetUserAsync(User);
