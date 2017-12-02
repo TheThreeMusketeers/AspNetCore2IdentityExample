@@ -2,7 +2,6 @@
 using AutoMapper;
 using IdentityExample001.Core.Models;
 using IdentityExample001.Core.Resources;
-using IdentityExample001.Core.ViewModels;
 using IdentityExample001.Persistence;
 using IdentityExample001.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -21,21 +20,21 @@ namespace IdentityExample001.Controllers
     [Route("api/[controller]")]
     public class ProductsController : Controller
     {
-        private readonly AppDbContext _dbContext;
+      
         private readonly UserManager<UserEntity> _userManager;
         private readonly IAuthorizationService _authorizationService;
         private readonly IProductService _productService;
         private readonly IUnitOfWork unitOfWork;
         private readonly PagingOptions defaultPagingOptions;
 
-        public ProductsController(AppDbContext dbContext, 
+        public ProductsController(
             UserManager<UserEntity> userManager,
             IAuthorizationService authorizationService,
             IProductService productService,
             IUnitOfWork unitOfWork,
             IOptions<PagingOptions> defaultPagingOptions)
         {
-            _dbContext = dbContext;
+          
             _userManager = userManager;
             _authorizationService = authorizationService;
             _productService = productService;
@@ -46,7 +45,7 @@ namespace IdentityExample001.Controllers
 
         [Authorize(AuthenticationSchemes = OAuthValidationDefaults.AuthenticationScheme)]
         [HttpPost(Name = nameof(CreateProduct))]
-        public async Task<IActionResult> CreateProduct([FromBody] CreateProductViewModel createProductViewModel)
+        public async Task<IActionResult> CreateProduct([FromBody] SaveProduct product)
         {
             if (User == null) return BadRequest();
 
@@ -64,7 +63,7 @@ namespace IdentityExample001.Controllers
 
             var user = await _userManager.GetUserAsync(User);
 
-            var entity = await _productService.AddAsync(createProductViewModel, user);
+            var entity = await _productService.AddAsync(product, user);
 
             int result = await unitOfWork.CompleteAsync();
 
@@ -78,7 +77,7 @@ namespace IdentityExample001.Controllers
 
         [Authorize(AuthenticationSchemes = OAuthValidationDefaults.AuthenticationScheme)]
         [HttpPut(Name = nameof(UpdateProduct))]
-        public async Task<IActionResult> UpdateProduct([FromBody] UpdateProductViewModel updateProductViewModel)
+        public async Task<IActionResult> UpdateProduct([FromBody] SaveProduct product)
         {
             if (User == null) return BadRequest();
 
@@ -96,7 +95,7 @@ namespace IdentityExample001.Controllers
 
             var user = await _userManager.GetUserAsync(User);
 
-            ProductEntity entity = await _productService.UpdateAsync(updateProductViewModel, user);
+            ProductEntity entity = await _productService.UpdateAsync(product, user);
 
             if (entity == null) return BadRequest("Ürün bulunamadı");
 
@@ -156,8 +155,6 @@ namespace IdentityExample001.Controllers
             [FromQuery] SortOptions<Product,ProductEntity> sortOptions,
             CancellationToken ct)
         {
-
-            throw new NotImplementedException();
 
             if (User == null) return BadRequest();
 

@@ -1,17 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace IdentityExample001.Core.Models
+namespace IdentityExample001.Core.Resources
 {
-    [Table("Products")]
-    public class ProductEntity : AuditEntity
+    public class SaveProduct
     {
-        [Key]
-        public Guid Id { get; set; }
+        public Guid? Id { get; set; }
 
         [Required]
         public string Name { get; set; }
@@ -20,9 +17,5 @@ namespace IdentityExample001.Core.Models
 
         [Required]
         public decimal Price { get; set; }
-
-        public Guid OrganizationId { get; set; }
-
-        public OrganizationEntity Organization { get; set; }
     }
 }

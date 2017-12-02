@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace IdentityExample001.Core.ViewModels
+namespace IdentityExample001.Core.Resources
 {
-    public class RegisterUserViewModel
+    public class User
     {
         public string FirstName { get; set; }
         public string LastName { get; set; }

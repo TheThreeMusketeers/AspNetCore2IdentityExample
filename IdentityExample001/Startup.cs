@@ -188,7 +188,7 @@ namespace IdentityExample001
                 Name = "Default Organization",
                 Description = "Default organization created seed data",
                 CreatedAt = DateTimeOffset.UtcNow,
-                CreatedBy = user.Email
+                CreatedBy = user.Id
             };
 
             var org = await dbContext.Organizations.SingleOrDefaultAsync(o => o.Name == organizationEntity.Name);

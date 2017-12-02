@@ -16,6 +16,7 @@ namespace IdentityExample001.Infrastructure
             CreateMap<Audit, AuditEntity>();
             CreateMap<Organization, OrganizationEntity>();
             CreateMap<Product, ProductEntity>();
+            CreateMap<SaveProduct, ProductEntity>();
 
             //Entity to resources
             CreateMap<AuditEntity, Audit>();

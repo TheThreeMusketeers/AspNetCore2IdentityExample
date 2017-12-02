@@ -1,6 +1,6 @@
 ﻿using AspNet.Security.OAuth.Validation;
 using IdentityExample001.Core.Models;
-using IdentityExample001.Core.ViewModels;
+using IdentityExample001.Core.Resources;
 using IdentityExample001.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -17,18 +17,18 @@ namespace IdentityExample001.Controllers
     [Route("api/[controller]")]
     public class UsersController : Controller
     {
-        private readonly UserManager<UserEntity> _userManager;
-        private readonly AppDbContext _dbContext;
+        private readonly UserManager<UserEntity> userManager;
+        private readonly AppDbContext dbContext;
         public UsersController(UserManager<UserEntity> userManager, AppDbContext dbContext)
         {
-            _userManager = userManager;
-            _dbContext = dbContext;
+            this.userManager = userManager;
+            this.dbContext = dbContext;
         }
 
         [HttpGet(Name = nameof(GetUsersAsync))]
         public async Task<IActionResult> GetUsersAsync()
         {
-            return Ok(await _userManager.Users.ToArrayAsync());
+            return Ok(await userManager.Users.ToArrayAsync());
         }
 
         [Authorize(AuthenticationSchemes = OAuthValidationDefaults.AuthenticationScheme)]
@@ -36,11 +36,11 @@ namespace IdentityExample001.Controllers
         public async Task<IActionResult> GetMeAsync(CancellationToken ct)
         {
             if (User == null) return BadRequest();
-            var user = await _userManager.GetUserAsync(User);
+            var user = await userManager.GetUserAsync(User);
 
             if (user == null) return NotFound();
 
-            var organization = await _dbContext.Organizations.SingleOrDefaultAsync(o => o.Id == user.OrganizationId);
+            var organization = await dbContext.Organizations.SingleOrDefaultAsync(o => o.Id == user.OrganizationId);
 
             user.Organization = organization;
 
@@ -48,20 +48,21 @@ namespace IdentityExample001.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> RegisterUser([FromBody] RegisterUserViewModel registerUserViewModel)
+        public async Task<IActionResult> RegisterUser([FromBody] User user)
         {
             if (!ModelState.IsValid) return BadRequest("Giriş bilgileri yetersiz.!");
 
             var entity = new UserEntity
             {
-                Email = registerUserViewModel.Email,
-                UserName = registerUserViewModel.Email,
-                FirstName = registerUserViewModel.FirstName,
-                LastName = registerUserViewModel.LastName,
+                Id = Guid.NewGuid(),
+                Email = user.Email,
+                UserName = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
                 CreatedAt = DateTimeOffset.UtcNow
             };
 
-            var result = await _userManager.CreateAsync(entity, registerUserViewModel.Password);
+            var result = await userManager.CreateAsync(entity, user.Password);
             if(!result.Succeeded)
             {
                 return BadRequest(ModelState);
@@ -70,15 +71,15 @@ namespace IdentityExample001.Controllers
             OrganizationEntity orgEntity = new OrganizationEntity
             {
                 Id = Guid.NewGuid(),
-                Name = registerUserViewModel.Email,
+                Name = user.Email,
                 Description = "Otomatik olarak organizasyon oluşturuldu",
                 CreatedAt = DateTimeOffset.UtcNow,
-                CreatedBy = registerUserViewModel.Email
+                CreatedBy = entity.Id
             };
 
-            await _dbContext.Organizations.AddAsync(orgEntity);
+            await dbContext.Organizations.AddAsync(orgEntity);
 
-            var orgResult =  await _dbContext.SaveChangesAsync();
+            var orgResult =  await dbContext.SaveChangesAsync();
 
             if (orgResult <= 0)
                 return BadRequest("Organizasyon oluşturulamadı");

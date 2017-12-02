@@ -9,10 +9,10 @@ namespace IdentityExample001.Core.Resources
     public class Audit
     {
         [Required]
-        public string CreatedBy { get; set; }
+        public Guid CreatedBy { get; set; }
         [Required]
         public DateTimeOffset CreatedAt { get; set; }
-        public string LastUpdatedBy { get; set; }
+        public Guid LastUpdatedBy { get; set; }
         public DateTimeOffset LastUpdatedAt { get; set; }
     }//cs
 }//ns
