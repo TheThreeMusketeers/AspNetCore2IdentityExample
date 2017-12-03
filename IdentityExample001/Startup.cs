@@ -201,7 +201,6 @@ namespace IdentityExample001
                 user.OrganizationId = org.Id;
                 user2.OrganizationId = org.Id;
             }
-
            
             //Add test role
             await roleManager.CreateAsync(new UserRoleEntity("Admin"));
