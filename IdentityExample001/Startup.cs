@@ -116,7 +116,6 @@ namespace IdentityExample001
         {
             app.UseAuthentication();
             
-
             app.UseMvcWithDefaultRoute();
             
             if (env.IsDevelopment())
@@ -127,9 +126,7 @@ namespace IdentityExample001
 
             // Seed the database with the sample application.
             // Note: in a real world application, this step should be part of a setup script.
-           InitializeAsync(app.ApplicationServices, CancellationToken.None).GetAwaiter().GetResult();
-
-            
+           //InitializeAsync(app.ApplicationServices, CancellationToken.None).GetAwaiter().GetResult();
 
             app.UseMvc();
         }
