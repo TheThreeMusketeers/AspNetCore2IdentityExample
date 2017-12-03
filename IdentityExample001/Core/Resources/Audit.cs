@@ -12,7 +12,7 @@ namespace IdentityExample001.Core.Resources
         public Guid CreatedBy { get; set; }
         [Required]
         public DateTimeOffset CreatedAt { get; set; }
-        public Guid LastUpdatedBy { get; set; }
-        public DateTimeOffset LastUpdatedAt { get; set; }
+        public Guid? LastUpdatedBy { get; set; }
+        public DateTimeOffset? LastUpdatedAt { get; set; }
     }//cs
 }//ns

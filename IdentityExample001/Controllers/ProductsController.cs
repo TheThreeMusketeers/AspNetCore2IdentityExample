@@ -21,9 +21,9 @@ namespace IdentityExample001.Controllers
     public class ProductsController : Controller
     {
       
-        private readonly UserManager<UserEntity> _userManager;
-        private readonly IAuthorizationService _authorizationService;
-        private readonly IProductService _productService;
+        private readonly UserManager<UserEntity> userManager;
+        private readonly IAuthorizationService authorizationService;
+        private readonly IProductService productService;
         private readonly IUnitOfWork unitOfWork;
         private readonly PagingOptions defaultPagingOptions;
 
@@ -35,9 +35,9 @@ namespace IdentityExample001.Controllers
             IOptions<PagingOptions> defaultPagingOptions)
         {
           
-            _userManager = userManager;
-            _authorizationService = authorizationService;
-            _productService = productService;
+            this.userManager = userManager;
+            this.authorizationService = authorizationService;
+            this.productService = productService;
             this.unitOfWork = unitOfWork;
             this.defaultPagingOptions = defaultPagingOptions.Value;
         }
@@ -51,7 +51,7 @@ namespace IdentityExample001.Controllers
 
             if(User.Identity.IsAuthenticated)
             {
-                var canCreateProductPolicy = await _authorizationService.AuthorizeAsync(User, Common.Policies.Policies.CreateProductPolicy);
+                var canCreateProductPolicy = await authorizationService.AuthorizeAsync(User, Common.Policies.Policies.CreateProductPolicy);
                 if(!canCreateProductPolicy.Succeeded)
                 {
                     return BadRequest("Kullanıcı yetkili değil");
@@ -61,9 +61,11 @@ namespace IdentityExample001.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(new ApiError(ModelState));
 
-            var user = await _userManager.GetUserAsync(User);
+            var user = await userManager.GetUserAsync(User);
 
-            var entity = await _productService.AddAsync(product, user);
+            var productEntity = Mapper.Map<SaveProduct, ProductEntity>(product);
+
+            productEntity = await productService.AddAsync(productEntity, user);
 
             int result = await unitOfWork.CompleteAsync();
 
@@ -72,18 +74,18 @@ namespace IdentityExample001.Controllers
                 return BadRequest(ModelState);
             }
            
-            return Ok(entity);
+            return Ok(productEntity);
         }//CreateProduct
 
         [Authorize(AuthenticationSchemes = OAuthValidationDefaults.AuthenticationScheme)]
-        [HttpPut(Name = nameof(UpdateProduct))]
-        public async Task<IActionResult> UpdateProduct([FromBody] SaveProduct product)
+        [HttpPut("{id}", Name = nameof(UpdateProduct))]
+        public async Task<IActionResult> UpdateProduct(Guid id,[FromBody] SaveProduct product)
         {
             if (User == null) return BadRequest();
 
             if (User.Identity.IsAuthenticated)
             {
-                var canCreateProductPolicy = await _authorizationService.AuthorizeAsync(User, Common.Policies.Policies.CreateProductPolicy);
+                var canCreateProductPolicy = await authorizationService.AuthorizeAsync(User, Common.Policies.Policies.CreateProductPolicy);
                 if (!canCreateProductPolicy.Succeeded)
                 {
                     return BadRequest("Kullanıcı yetkili değil");
@@ -93,9 +95,13 @@ namespace IdentityExample001.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var user = await _userManager.GetUserAsync(User);
+            var user = await userManager.GetUserAsync(User);
 
-            ProductEntity entity = await _productService.UpdateAsync(product, user);
+            ProductEntity entity = await productService.Get(id);
+
+            if (entity == null) return BadRequest(new ApiError { Message = "Product not found!" });
+
+            entity = await productService.UpdateAsync(entity, user);
 
             if (entity == null) return BadRequest("Ürün bulunamadı");
 
@@ -119,7 +125,7 @@ namespace IdentityExample001.Controllers
 
             if (User.Identity.IsAuthenticated)
             {
-                var canCreateProductPolicy = await _authorizationService.AuthorizeAsync(User, Common.Policies.Policies.CreateProductPolicy);
+                var canCreateProductPolicy = await authorizationService.AuthorizeAsync(User, Common.Policies.Policies.CreateProductPolicy);
                 if (!canCreateProductPolicy.Succeeded)
                 {
                     return BadRequest("Kullanıcı yetkili değil");
@@ -130,9 +136,9 @@ namespace IdentityExample001.Controllers
                 return BadRequest(ModelState);
 
           
-            var user = await _userManager.GetUserAsync(User);
+            var user = await userManager.GetUserAsync(User);
 
-            bool isDeleted = await _productService.DeleteAsync(id);
+            bool isDeleted = await productService.DeleteAsync(id);
 
             if (!isDeleted) return BadRequest("Ürün bulunamadı");
 
@@ -158,12 +164,12 @@ namespace IdentityExample001.Controllers
 
             if (User == null) return BadRequest();
 
-            var user = await _userManager.GetUserAsync(User);
+            var user = await userManager.GetUserAsync(User);
 
             pagingOptions.Offset = pagingOptions.Offset ?? defaultPagingOptions.Offset;
             pagingOptions.Limit = pagingOptions.Limit ?? defaultPagingOptions.Limit;
 
-            PagedResults<ProductEntity> productEntities = await _productService.GetProductsAsync(pagingOptions,sortOptions,user,ct);
+            PagedResults<ProductEntity> productEntities = await productService.GetProductsAsync(pagingOptions,sortOptions,user,ct);
 
             PagedResults<Product> products = Mapper.Map<PagedResults<ProductEntity>, PagedResults<Product>>(productEntities);
 

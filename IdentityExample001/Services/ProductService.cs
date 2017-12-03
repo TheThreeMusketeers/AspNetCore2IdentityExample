@@ -17,21 +17,15 @@ namespace IdentityExample001.Services
         {
             this.dbContext = dbContext;
         }
-        public async Task<ProductEntity> AddAsync(SaveProduct product, UserEntity user)
+        public async Task<ProductEntity> AddAsync(ProductEntity product, UserEntity user)
         {
-            ProductEntity entity = new ProductEntity
-            {
-                Id = Guid.NewGuid(),
-                Name = product.Name,
-                Description = product.Description,
-                CreatedBy = user.Id,
-                CreatedAt = DateTimeOffset.UtcNow,
-                OrganizationId = user.OrganizationId
-            };
+            product.CreatedAt = DateTimeOffset.UtcNow;
+            product.CreatedBy = user.Id;
+            product.OrganizationId = user.OrganizationId;
 
-            await dbContext.Products.AddAsync(entity);
+            await dbContext.Products.AddAsync(product);
 
-            return entity;
+            return product;
         }
 
         public async Task<bool> DeleteAsync(Guid id)
@@ -42,6 +36,11 @@ namespace IdentityExample001.Services
             dbContext.Products.Remove(entity);
 
             return true;
+        }
+
+        public async Task<ProductEntity> Get(Guid id)
+        {
+            return await dbContext.Products.Where(p => p.Id == id).SingleOrDefaultAsync();
         }
 
         public async Task<PagedResults<ProductEntity>> GetProductsAsync(
@@ -65,7 +64,7 @@ namespace IdentityExample001.Services
             };
         }
 
-        public async Task<ProductEntity> UpdateAsync(SaveProduct product, UserEntity user)
+        public async Task<ProductEntity> UpdateAsync(ProductEntity product, UserEntity user)
         {
             ProductEntity entity = await dbContext.Products.SingleOrDefaultAsync(p => p.Id == product.Id);
 
