@@ -16,12 +16,14 @@ namespace IdentityExample001.Infrastructure
             CreateMap<Audit, AuditEntity>();
             CreateMap<Organization, OrganizationEntity>();
             CreateMap<Product, ProductEntity>();
-            CreateMap<SaveProduct, ProductEntity>();
+            CreateMap<SaveProduct, ProductEntity>()
+                .ForMember(p => p.Id, opt => opt.Ignore());
 
             //Entity to resources
             CreateMap<AuditEntity, Audit>();
             CreateMap<OrganizationEntity, Organization>();
-            CreateMap<ProductEntity, Product>();
+            CreateMap<ProductEntity, Product>()
+                .ForMember(p => p.Id, opt => opt.Ignore());
             CreateMap(typeof(PagedResults<>), typeof(PagedResults<>));
         }
     }//cs

@@ -64,19 +64,5 @@ namespace IdentityExample001.Services
             };
         }
 
-        public async Task<ProductEntity> UpdateAsync(ProductEntity product, UserEntity user)
-        {
-            ProductEntity entity = await dbContext.Products.SingleOrDefaultAsync(p => p.Id == product.Id);
-
-            if (entity == null) return null;
-
-            entity.Description = product.Description;
-            entity.Name = product.Name;
-            entity.LastUpdatedBy = user.Id;
-            entity.LastUpdatedAt = DateTimeOffset.UtcNow;
-
-            return entity;
-
-        }
     }//cs
 }//ns

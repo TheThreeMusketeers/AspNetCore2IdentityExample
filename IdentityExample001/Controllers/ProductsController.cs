@@ -25,6 +25,7 @@ namespace IdentityExample001.Controllers
         private readonly IAuthorizationService authorizationService;
         private readonly IProductService productService;
         private readonly IUnitOfWork unitOfWork;
+        private readonly IMapper mapper;
         private readonly PagingOptions defaultPagingOptions;
 
         public ProductsController(
@@ -32,13 +33,15 @@ namespace IdentityExample001.Controllers
             IAuthorizationService authorizationService,
             IProductService productService,
             IUnitOfWork unitOfWork,
-            IOptions<PagingOptions> defaultPagingOptions)
+            IOptions<PagingOptions> defaultPagingOptions,
+            IMapper mapper)
         {
           
             this.userManager = userManager;
             this.authorizationService = authorizationService;
             this.productService = productService;
             this.unitOfWork = unitOfWork;
+            this.mapper = mapper;
             this.defaultPagingOptions = defaultPagingOptions.Value;
         }
 
@@ -101,10 +104,15 @@ namespace IdentityExample001.Controllers
 
             if (entity == null) return BadRequest(new ApiError { Message = "Product not found!" });
 
-            entity = await productService.UpdateAsync(entity, user);
+            // entity = mapper.Map<SaveProduct, ProductEntity>(product);
 
-            if (entity == null) return BadRequest("Ürün bulunamadı");
+            //entity = mapper.Map<ProductEntity>(product);
+            mapper.Map<SaveProduct, ProductEntity>(product, entity);
 
+            entity.LastUpdatedAt = DateTimeOffset.UtcNow;
+            entity.LastUpdatedBy = user.Id;
+            //entity.OrganizationId = user.OrganizationId;
+           
 
             var result = await unitOfWork.CompleteAsync();
 
